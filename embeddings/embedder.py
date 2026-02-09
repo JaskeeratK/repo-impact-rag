@@ -1,4 +1,8 @@
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 
 def get_embedder():
-    return OpenAIEmbeddings(model="text-embedding-3-small")
+    return HuggingFaceEmbeddings(
+        model_name="BAAI/bge-small-en-v1.5",
+        encode_kwargs={"normalize_embeddings": True}
+    )
+

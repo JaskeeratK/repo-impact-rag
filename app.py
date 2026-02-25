@@ -1,33 +1,31 @@
 import streamlit as st
-from ingest.commit_loader import load_commits
-from process.diff_parser import get_diff_summary
-from vectorstore.store import build_store
-from embeddings.embedder import get_embedder
-from rag.retriever import retrieve
-from rag.generator import generate_answer
+from vectorstore.build_index import build_index
+from rag.retriever import Retriever
+from rag.generator import Generator
+from dotenv import load_dotenv
 
-st.title("🔍 Code Change Impact Analyzer (RAG)")
+load_dotenv()
 
-repo_url = st.text_input("GitHub Repository URL")
-since = st.date_input("Analyze commits since")
+st.title("🔎 Code Change Impact Analyzer")
 
-if st.button("Index Repository"):
-    commits = load_commits(since=str(since))
-    docs = []
+repo_url = st.text_input("Enter GitHub Repo URL")
 
-    for c in commits:
-        diff = get_diff_summary(c["hash"])
-        docs.append(
-            f"{c['message']}\n{diff}"
-        )
+if st.button("Build Index"):
+    if repo_url:
+        with st.spinner("Building index..."):
+            build_index(repo_url)
+        st.success("Index built successfully!")
 
-    store = build_store(docs, get_embedder())
-    st.success("Repository indexed successfully!")
-
-query = st.text_input("Ask about a code change")
+question = st.text_input("Ask a question about code impact")
 
 if st.button("Analyze Impact"):
-    contexts = retrieve(query, store)
-    answer = generate_answer(query, contexts)
-    st.write(answer)
+    retriever = Retriever()
+    generator = Generator()
 
+    results = retriever.retrieve(question)
+    documents = results["documents"][0]
+
+    answer = generator.generate(documents, question)
+
+    st.subheader("Impact Analysis")
+    st.write(answer)

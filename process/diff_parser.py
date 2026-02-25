@@ -1,8 +1,15 @@
-import subprocess
+import re
 
-def get_diff_summary(commit_hash):
-    diff = subprocess.check_output(
-        ["git", "show", "--stat", commit_hash]
-    ).decode("utf-8")
 
-    return diff[:1500]  # truncate for embedding
+class DiffParser:
+    def parse(self, diff_text):
+        lines_added = len(re.findall(r'^\+', diff_text, re.MULTILINE))
+        lines_removed = len(re.findall(r'^-', diff_text, re.MULTILINE))
+
+        functions = re.findall(r'def (\w+)\(', diff_text)
+
+        return {
+            "lines_added": lines_added,
+            "lines_removed": lines_removed,
+            "functions_modified": list(set(functions))
+        }

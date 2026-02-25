@@ -1,8 +1,10 @@
 from langchain.embeddings import HuggingFaceEmbeddings
+class Embedder:
+    def __init__(self):
+        self.model = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
-def get_embedder():
-    return HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5",
-        encode_kwargs={"normalize_embeddings": True}
-    )
+    def embed(self, texts):
+        return self.model.embed_documents(texts)
 

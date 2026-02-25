@@ -1,33 +1,30 @@
 from groq import Groq
 import os
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-MODEL_NAME = "llama3-8b-8192"
+class Generator:
+    def __init__(self):
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def generate_answer(query, contexts):
-    context_text = "\n\n".join(
-        [c.page_content for c in contexts]
-    )
+    def generate(self, context_docs, question):
+        context_text = "\n\n".join(context_docs)
 
-    prompt = f"""
-You are a senior software engineer.
+        prompt = f"""
+You are a senior software architect.
 
-Based ONLY on the following git history and code changes:
+Context:
 {context_text}
 
-Answer the question clearly and mention potential impact areas.
-
 Question:
-{query}
+{question}
+
+Explain the impact clearly and mention possible risks.
 """
 
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2
-    )
+        response = self.client.chat.completions.create(
+            model="mixtral-8x7b-32768",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
 
-    return response.choices[0].message.content
+        return response.choices[0].message.content

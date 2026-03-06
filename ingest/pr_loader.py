@@ -4,7 +4,7 @@ import os
 
 class PRLoader:
     def __init__(self, repo_name):
-        self.client = Github(os.getenv("GITHUB_TOKEN"))
+        self.client = Github(os.getenv("gh_token"))
         self.repo = self.client.get_repo(repo_name)
 
     def get_prs(self, limit=20):

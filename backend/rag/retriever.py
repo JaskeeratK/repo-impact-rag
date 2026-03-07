@@ -1,5 +1,5 @@
-from embeddings.embedder import Embedder
-from vectorstore.store import VectorStore
+from backend.embeddings.embedder import Embedder
+from backend.vectorstore.store import VectorStore
 
 
 class Retriever:

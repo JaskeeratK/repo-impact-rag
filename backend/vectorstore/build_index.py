@@ -1,9 +1,9 @@
 import os
 import uuid
 
-from ingest.repo_loader import RepoLoader
-from embeddings.embedder import Embedder
-from vectorstore.store import VectorStore
+from backend.ingest.repo_loader import RepoLoader
+from backend.embeddings.embedder import Embedder
+from backend.vectorstore.store import VectorStore
 
 
 ALLOWED_EXTENSIONS = [

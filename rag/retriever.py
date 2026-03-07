@@ -3,12 +3,18 @@ from vectorstore.store import VectorStore
 
 
 class Retriever:
+
     def __init__(self):
+
         self.embedder = Embedder()
         self.store = VectorStore()
 
-    def retrieve(self, query):
-        query_embedding = self.embedder.embed(query)[0]
+    def retrieve(self, question):
+
+        query_embedding = self.embedder.embed(question)[0]
+
         results = self.store.query(query_embedding)
 
-        return results
+        documents = results.get("documents", [[]])[0]
+
+        return documents

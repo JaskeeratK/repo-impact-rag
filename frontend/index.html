@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repo Impact Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══ HERO SECTION ══ -->
+  <section class="hero-section">
+    <div class="gradient-blob"></div>
+    <div class="grain-overlay"></div>
+
+    <div class="sparkle">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 2 L17.2 14.8 L30 16 L17.2 17.2 L16 30 L14.8 17.2 L2 16 L14.8 14.8 Z" fill="#8B4513" opacity="0.85"/>
+      </svg>
+    </div>
+
+    <nav><span class="nav-logo">RIA</span></nav>
+
+    <div class="hero-content">
+      <div class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Open-source intelligence
+      </div>
+
+      <h1 class="hero-title">
+        Repo<br/>
+        <em>Impact</em><br/>
+        Analyzer
+      </h1>
+
+      <p class="hero-sub">
+        Understand the true footprint of every commit. Visualize contributor influence, dependency drift, and code health — across your entire GitHub organization.
+      </p>
+
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="document.getElementById('analyze').scrollIntoView({behavior:'smooth'})">
+          Analyze a repo →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ANALYZE SECTION ══ -->
+  <section class="analyze-section" id="analyze">
+    <div class="analyze-hue"></div>
+    <div class="analyze-grain"></div>
+
+    <p class="analyze-label">Get started</p>
+    <h2 class="analyze-heading">Drop in a repo,<br/><em>ask anything</em></h2>
+
+    <div class="analyze-card">
+      <div class="input-group">
+        <label class="input-label">Repository URL</label>
+        <input id="repoUrl" class="input-field" type="text" placeholder="https://github.com/owner/repo" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Your question</label>
+        <textarea id="repoQuestion" class="input-field" placeholder="e.g. Who are the top contributors? What files changed most in the last 30 days?"></textarea>
+      </div>
+      <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyze →</button>
+    </div>
+
+    <div class="result-area" id="resultArea">
+      <div class="result-box" id="resultBox"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Repo Impact Analyzer</span>
+    <span>Built for engineers who care</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

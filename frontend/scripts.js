@@ -1,59 +1,45 @@
-// async function runAnalysis() {
-//   const url = document.getElementById('repoUrl').value.trim();
-//   const question = document.getElementById('repoQuestion').value.trim();
-
-//   if (!url || !question) {
-//     alert('Please enter both a repository URL and a question.');
-//     return;
-//   }
-
-//   const btn = document.getElementById('analyzeBtn');
-//   const resultArea = document.getElementById('resultArea');
-//   const resultBox = document.getElementById('resultBox');
-
-//   btn.disabled = true;
-//   btn.textContent = 'Analyzing…';
-//   resultArea.classList.add('visible');
-//   resultBox.innerHTML = `<div class="spinner"><div class="spinner-ring"></div>Analyzing repository…</div>`;
-//   resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-//   try {
-//     const response = await fetch('https://api.anthropic.com/v1/messages', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({
-//         model: 'claude-sonnet-4-20250514',
-//         max_tokens: 1000,
-//         messages: [{
-//           role: 'user',
-//           content: `You are an expert software engineering analyst. A user wants to analyze this GitHub repository: ${url}\n\nTheir question: ${question}\n\nProvide a detailed, insightful analysis. If you cannot access the actual repo, give a thoughtful answer based on what can be inferred from the URL and question, and explain what metrics and insights would typically be relevant. Be specific and practical.`
-//         }]
-//       })
-//     });
-
-//     const data = await response.json();
-//     const text = (data.content?.map(b => b.text || '').join('') || 'No response received.').trim();
-//     const html = text
-//       .split(/\n{2,}/)
-//       .map(p => `<p style="margin-bottom:12px">${p.replace(/\n/g, '<br/>')}</p>`)
-//       .join('');
-
-//     resultBox.innerHTML = `<div class="result-title">Analysis</div>${html}`;
-//   } catch (err) {
-//     resultBox.innerHTML = `<p style="color:#c0392b">Something went wrong: ${err.message}</p>`;
-//   } finally {
-//     btn.disabled = false;
-//     btn.textContent = 'Analyze →';
-//   }
-// }
-async function runAnalysis() {
+let indexBuilt = false;
+const API_BASE = "https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev/";
+async function buildIndex() {
   const url = document.getElementById('repoUrl').value.trim();
-  const question = document.getElementById('repoQuestion').value.trim();
+  if (!url) { alert('Please enter a repository URL.'); return; }
 
-  if (!url || !question) {
-    alert('Please enter both a repository URL and a question.');
-    return;
+  const btn = document.getElementById('buildBtn');
+  const statusBox = document.getElementById('indexStatus');
+
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+  statusBox.innerHTML = `<div class="spinner"><div class="spinner-ring"></div>Cloning and indexing repo…</div>`;
+
+  try {
+    const response = await fetch("https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev/build-index", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ repo_url: url })
+    });
+
+    const data = await response.json();
+
+    if (data.status === "success") {
+      indexBuilt = true;
+      statusBox.innerHTML = `<p style="color:#2ecc71">✅ Index built — ${data.files_indexed} files indexed.</p>`;
+      document.getElementById('questionSection').style.display = 'block';
+    } else {
+      statusBox.innerHTML = `<p style="color:#c0392b">❌ ${data.message}</p>`;
+    }
+  } catch (err) {
+    statusBox.innerHTML = `<p style="color:#c0392b">Error: ${err.message}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Build Index';
   }
+}
+
+async function runAnalysis() {
+  if (!indexBuilt) { alert('Please build the index first.'); return; }
+
+  const question = document.getElementById('repoQuestion').value.trim();
+  if (!question) { alert('Please enter a question.'); return; }
 
   const btn = document.getElementById('analyzeBtn');
   const resultArea = document.getElementById('resultArea');
@@ -61,54 +47,51 @@ async function runAnalysis() {
 
   btn.disabled = true;
   btn.textContent = 'Analyzing…';
-
   resultArea.classList.add('visible');
-  resultBox.innerHTML = `<div class="spinner"><div class="spinner-ring"></div>Indexing repo…</div>`;
+  resultBox.innerHTML = `<div class="spinner"><div class="spinner-ring"></div>Analyzing impact…</div>`;
 
   try {
-
-    // 1️⃣ BUILD INDEX
-    await fetch("http://localhost:8000/build-index", {
+    const response = await fetch("https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev/analyze", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        repo_url: url
-      })
-    });
-
-
-    // 2️⃣ ANALYZE QUESTION
-    const response = await fetch("http://localhost:8000/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        question: question
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question })
     });
 
     const data = await response.json();
 
-    const text = data.answer;
+    if (data.status !== "success") {
+      resultBox.innerHTML = `<p style="color:#c0392b">❌ ${data.message}</p>`;
+      return;
+    }
 
-    const html = text
+    // Format answer
+    const html = data.answer
       .split(/\n{2,}/)
       .map(p => `<p style="margin-bottom:12px">${p.replace(/\n/g, '<br/>')}</p>`)
       .join('');
 
-    resultBox.innerHTML = `<div class="result-title">Impact Analysis</div>${html}`;
+    // Format affected files
+    let filesHtml = '';
+    if (data.affected_files && data.affected_files.length > 0) {
+      const fileItems = data.affected_files
+        .map(f => `<li style="font-family:monospace;font-size:13px;margin-bottom:4px">${f}</li>`)
+        .join('');
+      filesHtml = `
+        <div class="result-title" style="margin-top:24px">🔗 Affected Files</div>
+        <ul style="padding-left:20px;margin-top:8px">${fileItems}</ul>
+      `;
+    }
+
+    resultBox.innerHTML = `
+      <div class="result-title">Impact Analysis</div>
+      ${html}
+      ${filesHtml}
+    `;
 
   } catch (err) {
-
     resultBox.innerHTML = `<p style="color:#c0392b">Error: ${err.message}</p>`;
-
   } finally {
-
     btn.disabled = false;
     btn.textContent = 'Analyze →';
-
   }
 }

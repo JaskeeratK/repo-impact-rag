@@ -6,6 +6,68 @@
   <title>Repo Impact Analyzer</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Only new styles not in style.css */
+    .index-status {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      min-height: 20px;
+      padding: 4px 0;
+    }
+
+    .question-section {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(26,24,20,0.1);
+    }
+
+    .question-section.visible {
+      display: flex;
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .affected-files {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(26,24,20,0.08);
+    }
+
+    .affected-files-title {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+
+    .affected-files ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .affected-files li {
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(139,69,19,0.06);
+      border-left: 2px solid #8B4513;
+      padding: 6px 10px;
+    }
+  </style>
 </head>
 <body>
 
@@ -55,20 +117,40 @@
     <h2 class="analyze-heading">Drop in a repo,<br/><em>ask anything</em></h2>
 
     <div class="analyze-card">
+
+      <!-- STEP 1: BUILD INDEX -->
+      <p class="step-label">Step 1 — Index the repository</p>
       <div class="input-group">
         <label class="input-label">Repository URL</label>
-        <input id="repoUrl" class="input-field" type="text" placeholder="https://github.com/owner/repo" />
+        <input id="repoUrl" class="input-field" type="text"
+               placeholder="https://github.com/owner/repo" />
       </div>
-      <div class="input-group">
-        <label class="input-label">Your question</label>
-        <textarea id="repoQuestion" class="input-field" placeholder="e.g. Who are the top contributors? What files changed most in the last 30 days?"></textarea>
+      <button class="analyze-btn" id="buildBtn" onclick="buildIndex()">
+        Build Index
+      </button>
+      <div class="index-status" id="indexStatus"></div>
+
+      <!-- STEP 2: ASK QUESTION (hidden until index built) -->
+      <div class="question-section" id="questionSection">
+        <p class="step-label">Step 2 — Ask about impact</p>
+        <div class="input-group">
+          <label class="input-label">Your question</label>
+          <textarea id="repoQuestion" class="input-field"
+            placeholder="e.g. What breaks if I change the auth middleware?">
+          </textarea>
+        </div>
+        <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+          Analyze →
+        </button>
       </div>
-      <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyze →</button>
+
     </div>
 
+    <!-- RESULTS -->
     <div class="result-area" id="resultArea">
       <div class="result-box" id="resultBox"></div>
     </div>
+
   </section>
 
   <footer>
@@ -76,6 +158,6 @@
     <span>Built for engineers who care</span>
   </footer>
 
-  <script src="main.js"></script>
+  <script src="scripts.js"></script>
 </body>
 </html>

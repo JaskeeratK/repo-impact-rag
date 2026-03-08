@@ -41,8 +41,37 @@ def read_files(repo_path):
     return files
 
 
-def chunk_text(text, chunk_size=800):
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+# def chunk_text(text, chunk_size=800):
+#     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+import ast as ast_module
+
+def chunk_by_functions(file_path, content):
+    chunks = []
+    if file_path.endswith(".py"):
+        try:
+            tree = ast_module.parse(content)
+            for node in ast_module.walk(tree):
+                if isinstance(node, (ast_module.FunctionDef, ast_module.ClassDef)):
+                    start = node.lineno - 1
+                    end = node.end_lineno
+                    lines = content.splitlines()[start:end]
+                    chunks.append({
+                        "content": "\n".join(lines),
+                        "name": node.name,
+                        "type": "function" if isinstance(node, ast_module.FunctionDef) else "class"
+                    })
+        except SyntaxError:
+            pass
+    # fallback for non-Python or failed parse
+    if not chunks:
+        for i in range(0, len(content), 800):
+            chunks.append({
+                "content": content[i:i+800],
+                "name": "chunk",
+                "type": "raw"
+            })
+    return chunks
 
 
 def build_index(repo_url):
@@ -59,23 +88,37 @@ def build_index(repo_url):
 
     total_chunks = 0
 
+    # for file in files:
+
+    #     chunks = chunk_text(file["content"])
+
+    #     for chunk in chunks:
+
+    #         embedding = embedder.embed(chunk)[0]
+
+    #         store.add(
+    #             ids=[str(uuid.uuid4())],
+    #             documents=[chunk],
+    #             embeddings=[embedding],
+    #             metadatas=[{
+    #                 "file": file["path"]
+    #             }]
+    #         )
+
+    #         total_chunks += 1
+
+    # print("Chunks indexed:", total_chunks)
     for file in files:
-
-        chunks = chunk_text(file["content"])
-
+        chunks = chunk_by_functions(file["path"], file["content"])
         for chunk in chunks:
-
-            embedding = embedder.embed(chunk)[0]
-
+            embedding = embedder.embed(chunk["content"])[0]
             store.add(
                 ids=[str(uuid.uuid4())],
-                documents=[chunk],
+                documents=[chunk["content"]],
                 embeddings=[embedding],
                 metadatas=[{
-                    "file": file["path"]
+                    "file": file["path"],
+                    "name": chunk["name"],
+                    "type": chunk["type"]
                 }]
             )
-
-            total_chunks += 1
-
-    print("Chunks indexed:", total_chunks)

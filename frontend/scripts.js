@@ -1,5 +1,5 @@
 let indexBuilt = false;
-const API_BASE = "https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev/";
+const API_BASE = "https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev";
 async function buildIndex() {
   const url = document.getElementById('repoUrl').value.trim();
   if (!url) { alert('Please enter a repository URL.'); return; }

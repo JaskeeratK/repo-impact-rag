@@ -108,6 +108,26 @@ def build_index(repo_url):
     #         total_chunks += 1
 
     # print("Chunks indexed:", total_chunks)
+
+    # for file in files:
+    #     chunks = chunk_by_functions(file["path"], file["content"])
+    #     for chunk in chunks:
+    #         embedding = embedder.embed(chunk["content"])[0]
+    #         store.add(
+    #             ids=[str(uuid.uuid4())],
+    #             documents=[chunk["content"]],
+    #             embeddings=[embedding],
+    #             metadatas=[{
+    #                 "file": file["path"],
+    #                 "name": chunk["name"],
+    #                 "type": chunk["type"]
+    #             }]
+    #         )
+    files = read_files(repo_path)
+    print("Files found:", len(files))
+
+    total_chunks = 0
+
     for file in files:
         chunks = chunk_by_functions(file["path"], file["content"])
         for chunk in chunks:
@@ -122,3 +142,7 @@ def build_index(repo_url):
                     "type": chunk["type"]
                 }]
             )
+            total_chunks += 1
+
+    print("Chunks indexed:", total_chunks)
+    return repo_path  # critical — api.py needs this

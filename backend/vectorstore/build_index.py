@@ -41,9 +41,6 @@ def read_files(repo_path):
     return files
 
 
-# def chunk_text(text, chunk_size=800):
-#     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-
 import ast as ast_module
 
 def chunk_by_functions(file_path, content):
@@ -87,27 +84,6 @@ def build_index(repo_url):
     print("Files found:", len(files))
 
     total_chunks = 0
-
-    # for file in files:
-
-    #     chunks = chunk_text(file["content"])
-
-    #     for chunk in chunks:
-
-    #         embedding = embedder.embed(chunk)[0]
-
-    #         store.add(
-    #             ids=[str(uuid.uuid4())],
-    #             documents=[chunk],
-    #             embeddings=[embedding],
-    #             metadatas=[{
-    #                 "file": file["path"]
-    #             }]
-    #         )
-
-    #         total_chunks += 1
-
-    # print("Chunks indexed:", total_chunks)
 
     # for file in files:
     #     chunks = chunk_by_functions(file["path"], file["content"])

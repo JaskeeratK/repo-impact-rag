@@ -1,0 +1,25 @@
+# API & server
+fastapi
+uvicorn
+python-dotenv
+pydantic
+
+# RAG & embeddings
+sentence-transformers
+chromadb
+groq
+
+# Repo ingestion
+gitpython
+PyGithub
+
+# ── NEW: inclusive file processing ──────────────────────────────────────
+# Language detection (identifies 500+ languages by filename or content)
+pygments
+
+# Encoding detection (handles non-UTF-8 source files)
+chardet
+
+# Tree-sitter: proper AST chunking for Python, JS, TS, Go, Rust, Java, Ruby, C, C++
+# The convenience wrapper bundles all grammars — no need to install each separately
+tree-sitter-languages

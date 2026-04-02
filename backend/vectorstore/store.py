@@ -7,7 +7,8 @@ class VectorStore:
 
         self.client = chromadb.Client(
             chromadb.config.Settings(
-                persist_directory="chroma_db"
+                persist_directory="./chroma_db",
+                is_persistent=True   # ✅ this is enough
             )
         )
 

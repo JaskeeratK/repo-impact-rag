@@ -1,18 +1,8 @@
 let indexBuilt = false;
-const API_BASE = "https://miniature-fortnight-pj64w4ppp9939q7-8000.app.github.dev";
+const API_BASE = "https://verbose-space-engine-69rgg5j44r5rfxr7r-8000.app.github.dev";
 
 function renderMarkdown(text) {
-  return text
-    .replace(/^### (.+)$/gm, '<h4 style="font-family:Fraunces,serif;font-weight:400;margin:16px 0 8px">$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3 style="font-family:Fraunces,serif;font-weight:400;margin:20px 0 8px">$1</h3>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code style="background:rgba(139,69,19,0.08);padding:2px 6px;border-radius:3px;font-size:12px">$1</code>')
-    .replace(/^\* (.+)$/gm, '<li style="margin-bottom:6px">$1</li>')
-    .replace(/^- (.+)$/gm, '<li style="margin-bottom:6px">$1</li>')
-    .replace(/^\d+\. (.+)$/gm, '<li style="margin-bottom:6px">$1</li>')
-    .replace(/(<li[^>]*>.*<\/li>\n?)+/g, m => `<ul style="padding-left:20px;margin:8px 0">${m}</ul>`)
-    .replace(/\n{2,}/g, '</p><p style="margin-bottom:12px">')
-    .replace(/\n/g, '<br/>');
+  return marked.parse(text);
 }
 
 async function buildIndex() {
@@ -59,11 +49,16 @@ async function runAnalysis() {
   const btn = document.getElementById('analyzeBtn');
   const resultArea = document.getElementById('resultArea');
   const resultBox = document.getElementById('resultBox');
+  const retrievalPanel = document.getElementById('retrievalPanel');
+  const graphEl = document.getElementById('impactGraph');
 
   btn.disabled = true;
   btn.textContent = 'Analyzing…';
   resultArea.classList.add('visible');
+  document.getElementById('analyze').classList.add('has-results');
   resultBox.innerHTML = `<div class="spinner"><div class="spinner-ring"></div>Analyzing impact…</div>`;
+  retrievalPanel.innerHTML = '';
+  graphEl.innerHTML = '';
 
   try {
     const response = await fetch(`${API_BASE}/analyze`, {
@@ -79,15 +74,13 @@ async function runAnalysis() {
       return;
     }
 
-    // Render answer
-    const html = `<p style="margin-bottom:12px">${renderMarkdown(data.answer)}</p>`;
+    // Render prose answer
+    const html = renderMarkdown(data.answer);
 
     // Affected files
     let filesHtml = '';
     if (data.affected_files && data.affected_files.length > 0) {
-      const fileItems = data.affected_files
-        .map(f => `<li>${f}</li>`)
-        .join('');
+      const fileItems = data.affected_files.map(f => `<li>${f}</li>`).join('');
       filesHtml = `
         <div class="affected-files">
           <div class="affected-files-title">🔗 Affected Files</div>
@@ -96,42 +89,76 @@ async function runAnalysis() {
       `;
     }
 
-    // Collapsible debug context
-    let contextHtml = '';
-    if (data.contexts && data.contexts.length > 0) {
-      const contextItems = data.contexts.map((ctx, i) => `
-        <div style="margin-bottom:16px">
-          <div style="font-size:11px;font-weight:500;letter-spacing:0.1em;
-                      text-transform:uppercase;color:var(--text-muted);
-                      margin-bottom:6px">Context ${i + 1}</div>
-          <pre style="background:rgba(26,24,20,0.04);border-left:2px solid #8B4513;
-                      padding:12px 16px;font-size:12px;line-height:1.6;
-                      overflow-x:auto;white-space:pre-wrap;
-                      word-break:break-word;margin:0">${ctx}</pre>
-        </div>
-      `).join('');
-
-      contextHtml = `
-        <div style="margin-top:24px;padding-top:20px;
-                    border-top:1px solid rgba(26,24,20,0.08)">
-          <details>
-            <summary style="cursor:pointer;font-size:12px;font-weight:500;
-                            letter-spacing:0.1em;text-transform:uppercase;
-                            color:var(--text-muted);margin-bottom:16px">
-              🔍 Retrieved Context (Debug)
-            </summary>
-            <div style="margin-top:12px">${contextItems}</div>
-          </details>
-        </div>
-      `;
-    }
-
     resultBox.innerHTML = `
       <div class="result-title">Impact Analysis</div>
       ${html}
       ${filesHtml}
-      ${contextHtml}
     `;
+
+    // Render impact graph
+    if (data.graph) {
+      try {
+        const g = data.graph;
+        const nodeLines = [
+          `  A([${g.change.label}<br/><small>${g.change.detail}</small>])`,
+          ...g.direct_changes.map((n, i) =>
+            `  ${String.fromCharCode(66+i)}[${n.label}<br/><small>${n.file.split('/').pop()}</small>]`),
+          ...g.dependencies.map((n, i) =>
+            `  ${String.fromCharCode(66+g.direct_changes.length+i)}([${n.label}<br/><small>${n.file.split('/').pop()}</small>])`)
+        ];
+        const edgeLines = [
+          ...g.direct_changes.map((_, i) => `  A --> ${String.fromCharCode(66+i)}`),
+          ...g.dependencies.map((_, i) => `  A -.-> ${String.fromCharCode(66+g.direct_changes.length+i)}`)
+        ];
+        const styleLines = [
+          `  style A fill:#FBEAF0,stroke:#993556,color:#4B1528`,
+          ...g.direct_changes.map((_, i) =>
+            `  style ${String.fromCharCode(66+i)} fill:#FAECE7,stroke:#993C1D,color:#4A1B0C`),
+          ...g.dependencies.map((_, i) =>
+            `  style ${String.fromCharCode(66+g.direct_changes.length+i)} fill:#FAEEDA,stroke:#854F0B,color:#412402`)
+        ];
+        const mermaidSrc = `graph TD\n${nodeLines.join('\n')}\n${edgeLines.join('\n')}\n${styleLines.join('\n')}`;
+
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = mermaidSrc;
+        graphEl.appendChild(div);
+        await window.mermaid.run({ nodes: [div] });
+      } catch(e) {
+        console.error('Graph render failed:', e);
+        graphEl.innerHTML = '';
+      }
+    }
+
+    // Retrieval quality panel (sidebar)
+    if (data.chunks && data.chunks.length > 0) {
+      const avgScore = (data.chunks.reduce((s, c) => s + c.score, 0) / data.chunks.length).toFixed(2);
+      const topScore = Math.max(...data.chunks.map(c => c.score)).toFixed(2);
+
+      const chunkItems = data.chunks.map((chunk) => {
+        const pct = Math.round(chunk.score * 100);
+        const barColor = chunk.score > 0.75 ? '#2ecc71' : chunk.score > 0.5 ? '#f39c12' : '#e74c3c';
+        return `
+          <div style="margin-bottom:16px;padding:12px 14px;background:rgba(26,24,20,0.03);border-left:2px solid ${barColor}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">${chunk.file}</span>
+              <span style="font-size:12px;font-weight:600;color:${barColor}">${pct}%</span>
+            </div>
+            <div style="height:4px;background:rgba(26,24,20,0.08);border-radius:2px;margin-bottom:10px">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width 0.6s ease"></div>
+            </div>
+            <pre style="font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--text-muted)">${chunk.text.slice(0, 300)}${chunk.text.length > 300 ? '…' : ''}</pre>
+          </div>
+        `;
+      }).join('');
+
+      retrievalPanel.innerHTML = `
+        <div style="font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px">
+          🔍 Retrieval Quality — avg <strong>${avgScore}</strong> · top <strong>${topScore}</strong>
+        </div>
+        ${chunkItems}
+      `;
+    }
 
   } catch (err) {
     resultBox.innerHTML = `<p style="color:#c0392b">Error: ${err.message}</p>`;

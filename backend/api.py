@@ -43,6 +43,9 @@ def build_repo_index(data: RepoRequest):
         graph = DependencyGraph()
         graph.build(repo_path)
         app.state.dependency_graph = graph
+        retriever = Retriever()
+        retriever._build_bm25_index()
+        app.state.retriever = retriever
 
         return {
             "status": "success",
@@ -53,19 +56,19 @@ def build_repo_index(data: RepoRequest):
         return {"status": "error", "message": str(e)}
 
 
-# ---------- Analyze Impact ----------
 @app.post("/analyze")
 def analyze_impact(data: QuestionRequest):
     try:
-        retriever = Retriever()
+        retriever = getattr(app.state, 'retriever', Retriever())
         generator = Generator()
+        # retriever = Retriever()
+        # generator = Generator()
 
-        contexts, source_files = retriever.retrieve(data.question)
+        chunks, source_files = retriever.retrieve(data.question)
 
-        if not contexts:
+        if not chunks:
             return {"status": "error", "message": "No relevant context found"}
 
-        # Use actual source files from retrieval for dependency lookup (not keyword matching)
         dependents = []
         if hasattr(app.state, "dependency_graph"):
             graph = app.state.dependency_graph
@@ -73,11 +76,12 @@ def analyze_impact(data: QuestionRequest):
                 dependents.extend(graph.get_dependents(f))
         dependents = list(set(dependents))
 
-        answer = generator.generate(data.question, contexts, dependents=dependents)
+        answer, graph_json = generator.generate(data.question, chunks, dependents=dependents)
         return {
             "status": "success",
             "answer": answer,
-            "contexts": contexts,
+            "graph": graph_json,
+            "chunks": chunks,
             "affected_files": dependents
         }
     except Exception as e:

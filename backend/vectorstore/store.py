@@ -1,23 +1,20 @@
 import chromadb
 
-
 class VectorStore:
+    COLLECTION_NAME = "repo_chunks"
 
-    def __init__(self, collection_name="repo_index"):
+    def __init__(self):
+        self.client = chromadb.PersistentClient(path="./chroma_db")
+        self.collection = self.client.get_or_create_collection(self.COLLECTION_NAME)
 
-        self.client = chromadb.Client(
-            chromadb.config.Settings(
-                persist_directory="./chroma_db",
-                is_persistent=True   # ✅ this is enough
-            )
-        )
-
-        self.collection = self.client.get_or_create_collection(
-            name=collection_name
-        )
+    def reset(self):
+        try:
+            self.client.delete_collection(self.COLLECTION_NAME)
+        except Exception:
+            pass
+        self.collection = self.client.get_or_create_collection(self.COLLECTION_NAME)
 
     def add(self, ids, documents, embeddings, metadatas):
-
         self.collection.add(
             ids=ids,
             documents=documents,
@@ -26,7 +23,6 @@ class VectorStore:
         )
 
     def query(self, query_embedding, n_results=5):
-
         return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n_results

@@ -230,7 +230,7 @@ def build_index(repo_url: str):
 
     embedder = Embedder()
     store = VectorStore()
-
+    store.reset() 
     files = read_files(repo_path)
     print(f"Files found: {len(files)}")
 

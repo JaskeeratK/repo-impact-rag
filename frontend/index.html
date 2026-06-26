@@ -6,8 +6,16 @@
   <title>Repo Impact Analyzer</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <script type="module">
+    import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+    window.mermaid = mermaid;
+    mermaid.initialize({ startOnLoad: false, theme: 'base',
+      themeVariables: { primaryColor: '#FAECE7', primaryBorderColor: '#993C1D',
+        primaryTextColor: '#1c0f0a', lineColor: '#7a6255' }
+    });
+  </script>
   <style>
-    /* Only new styles not in style.css */
     .index-status {
       font-size: 13px;
       font-weight: 400;
@@ -68,14 +76,13 @@
       padding: 6px 10px;
     }
 
-    /* Two-column hero */
     .hero-content {
-  flex-direction: row !important;
-  align-items: stretch !important;
-  justify-content: flex-start;
-  gap: 0;
-  max-width: 100% !important;
-  padding-right: 0 !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      justify-content: flex-start;
+      gap: 0;
+      max-width: 100% !important;
+      padding-right: 0 !important;
     }
 
     .hero-left {
@@ -85,7 +92,6 @@
       justify-content: center;
     }
 
-    /* hero-right: takes up ~40% width, full height of hero-content */
     .hero-right {
       flex: 0 0 70%;
       position: relative;
@@ -94,7 +100,6 @@
       margin-left: -100px;
     }
 
-    /* canvas fills the entire hero-right box */
     #ria-net {
       position: absolute;
       inset: 0;
@@ -107,11 +112,59 @@
       .hero-content { flex-direction: column !important; gap: 40px; padding-right: 56px !important; }
       .hero-right { flex: unset; width: 100%; height: 320px; }
     }
+
+    .markdown-output pre {
+      background: rgba(26,24,20,0.06);
+      border-left: 2px solid #8B4513;
+      padding: 12px 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-x: auto;
+      border-radius: 2px;
+      margin: 10px 0;
+    }
+    .markdown-output code {
+      background: rgba(139,69,19,0.08);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .markdown-output pre code {
+      background: none;
+      padding: 0;
+    }
+    .markdown-output ul, .markdown-output ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    .markdown-output li {
+      margin-bottom: 6px;
+    }
+    .markdown-output h3, .markdown-output h4 {
+      font-family: 'Fraunces', serif;
+      font-weight: 400;
+      margin: 16px 0 8px;
+    }
+    .markdown-output p {
+      margin-bottom: 12px;
+    }
+
+    #impactGraph {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    #impactGraph svg {
+      max-width: 100%;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ══ HERO SECTION ══ -->
   <section class="hero-section">
     <div class="gradient-blob"></div>
     <div class="grain-overlay"></div>
@@ -125,7 +178,6 @@
     <nav><span class="nav-logo">RIA</span></nav>
 
     <div class="hero-content">
-
       <div class="hero-left">
         <div class="eyebrow">
           <span class="eyebrow-dot"></span>
@@ -149,15 +201,12 @@
         </div>
       </div>
 
-      <!-- hero-right: canvas only, no text -->
       <div class="hero-right">
         <canvas id="ria-net"></canvas>
       </div>
-
     </div>
   </section>
 
-  <!-- ══ ANALYZE SECTION ══ -->
   <section class="analyze-section" id="analyze">
     <div class="analyze-hue"></div>
     <div class="analyze-grain"></div>
@@ -166,8 +215,6 @@
     <h2 class="analyze-heading">Drop in a repo,<br/><em>ask anything</em></h2>
 
     <div class="analyze-card">
-
-      <!-- STEP 1: BUILD INDEX -->
       <p class="step-label">Step 1 — Index the repository</p>
       <div class="input-group">
         <label class="input-label">Repository URL</label>
@@ -179,7 +226,6 @@
       </button>
       <div class="index-status" id="indexStatus"></div>
 
-      <!-- STEP 2: ASK QUESTION (hidden until index built) -->
       <div class="question-section" id="questionSection">
         <p class="step-label">Step 2 — Ask about impact</p>
         <div class="input-group">
@@ -192,13 +238,15 @@
           Analyze →
         </button>
       </div>
-
     </div>
 
     <!-- RESULTS -->
+    
     <div class="result-area" id="resultArea">
-      <div class="result-box" id="resultBox"></div>
-    </div>
+  <div class="result-box markdown-output" id="resultBox"></div>
+  <div class="retrieval-panel" id="retrievalPanel"></div>
+</div>
+<div id="impactGraph" style="width:100%;max-width:1100px;margin:20px auto;display:flex;justify-content:center;"></div>
 
   </section>
 

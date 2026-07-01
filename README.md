@@ -2,7 +2,7 @@
 
 <img width="1327" height="650" alt="ria5" src="https://github.com/user-attachments/assets/068cadea-256e-486b-a921-ccead3e6990f" />
 <img width="1336" height="640" alt="ria6" src="https://github.com/user-attachments/assets/c01ae45a-6707-456f-9f6a-a03ac431b717" />
-# Repo Impact RAG 🔍🚀
+## Repo Impact RAG 🔍🚀
 
 An advanced Retrieval-Augmented Generation (RAG) system engineered to map, trace, and evaluate the blast radius of code changes within a repository. By combining AST-aware code chunking, hybrid dense/sparse search, and static dependency graphs, this system answers natural-language questions about how changes to a function, module, or database schema ripple through an ecosystem.
 
@@ -10,25 +10,36 @@ An advanced Retrieval-Augmented Generation (RAG) system engineered to map, trace
 
 ## 🏗️ Architecture & Pipeline Flow
 
-frontend/ (Static HTML/JS/CSS) ──HTTP──> backend/api.py (FastAPI)
-│
-┌─────────────────────────┴─────────────────────────┐
-│                                                   │
-POST /build-index                                    POST /analyze
-│                                                   │
-RepoLoader.clone()                                   Retriever.retrieve()
-(git clone to disk)                                  ├── Dense Vector (Chroma)
-│                                          └── Sparse BM25 (rank_bm25)
-read_files() + chunk_file()                                   │
-(Tree-Sitter AST / fallback)                         Reciprocal Rank Fusion (RRF)
-│                                                   │
-Embedder.embed()                                     DependencyGraph.get_dependents()
-(sentence-transformers)                                       │
-│                                          Generator.generate()
-VectorStore.add()                                    (2 Groq calls: prose + JSON graph)
-(Chroma, in-memory)
 
-
+```text
+                          frontend/ (Static HTML / JS / CSS)
+                                      │
+                                   HTTP API
+                                      │
+                                      ▼
+                     backend/api.py (FastAPI Application)
+                                      │
+            ┌─────────────────────────┴─────────────────────────┐
+            │                                                   │
+            ▼                                                   ▼
+      POST /build-index                                  POST /analyze
+            │                                                   │
+            ▼                                                   ▼
+     RepoLoader.clone()                               Retriever.retrieve()
+      (Clone Git repository)                          │
+            │                                         ├── Dense Retrieval (ChromaDB)
+            ▼                                         └── Sparse Retrieval (BM25)
+  read_files() + chunk_file()                                   │
+(Tree-Sitter AST parsing / fallback)                            ▼
+            │                                  Reciprocal Rank Fusion (RRF)
+            ▼                                                   │
+   Embedder.embed()                                             ▼
+(sentence-transformers)                     DependencyGraph.get_dependents()
+            │                                                   │
+            ▼                                                   ▼
+     VectorStore.add()                              Generator.generate()
+ (ChromaDB in-memory store)           (Groq LLM: Markdown analysis + JSON graph)
+```
 ---
 
 ## 🛠️ Core Backend Mechanics

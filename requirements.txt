@@ -22,4 +22,5 @@ chardet
 
 # Tree-sitter: proper AST chunking for Python, JS, TS, Go, Rust, Java, Ruby, C, C++
 # The convenience wrapper bundles all grammars — no need to install each separately
-tree-sitter-languagesrank_bm25
+tree-sitter-languages
+rank_bm25

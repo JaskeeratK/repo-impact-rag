@@ -4,7 +4,7 @@ class VectorStore:
     COLLECTION_NAME = "repo_chunks"
 
     def __init__(self):
-        self.client = chromadb.PersistentClient(path="./chroma_db")
+        self.client = chromadb.EphemeralClient()
         self.collection = self.client.get_or_create_collection(self.COLLECTION_NAME)
 
     def reset(self):

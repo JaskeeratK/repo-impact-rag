@@ -1,5 +1,5 @@
 let indexBuilt = false;
-const API_BASE = "https://repo-impact-rag.onrender.com";
+const API_BASE = "https://repoimpactanalyzer.vercel.app/";
 
 function renderMarkdown(text) {
   return marked.parse(text);

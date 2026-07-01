@@ -16,11 +16,10 @@ app = FastAPI(title="Repo Impact RAG API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ---------- Request Models ----------
 class RepoRequest(BaseModel):

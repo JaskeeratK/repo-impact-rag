@@ -78,68 +78,93 @@ frontend/
   index.html / scripts.js    Single-page dashboard (Mermaid rendering + RRF telemetry panels)
 requirements.txt
 ```
-## 🔌 API Specification
-All endpoints are hosted on backend/api.py and are CORS-open.
+# 🔌 API Specification
 
-POST /build-index
-Clones a target repository, fragments files via tree-sitter, maps imports, and primes the vector store.
+All endpoints are hosted on `backend/api.py` and are CORS-enabled.
 
-Payload:
+---
 
-JSON
+## POST `/build-index`
 
+Clones a target repository, fragments source files using **Tree-sitter**, maps imports, and initializes the vector store.
 
-{ "repo_url": "[https://github.com/user/repo](https://github.com/user/repo)" }
-Returns: Total count of indexed chunks.
+### Request Body
 
-POST /analyze
-Generates a structured impact profile and dependency graph.
+```json
+{
+  "repo_url": "https://github.com/user/repo"
+}
+```
 
-Payload:
+### Response
 
-JSON
+Returns the total number of indexed code chunks.
 
+---
 
-{ "question": "What breaks if we change the user authentication payload schema?" }
-Returns:
+## POST `/analyze`
 
-answer: Comprehensive impact, risk profile, and mitigation roadmap in Markdown.
+Generates a structured impact analysis and dependency graph for a codebase query.
 
-graph: Structured JSON mapping used to render the live Mermaid canvas.
+### Request Body
 
-chunks: Exploded retrieval-quality panel displaying raw dense/BM25/RRF metrics.
+```json
+{
+  "question": "What breaks if we change the user authentication payload schema?"
+}
+```
 
-⚡ Quickstart
-1. Installation
-Clone the repository and install system requirements:
+### Response
 
-Bash
+| Field | Description |
+|--------|-------------|
+| `answer` | Comprehensive impact analysis, risk profile, and mitigation roadmap in Markdown format. |
+| `graph` | Structured JSON used to render the live Mermaid dependency graph. |
+| `chunks` | Retrieval diagnostics showing raw Dense Retrieval, BM25, and RRF ranking metrics. |
 
+---
 
+# ⚡ Quickstart
+
+## 1. Installation
+
+Clone the repository and install the required dependencies:
+
+```bash
 pip install -r requirements.txt
-2. Environment Variables
-Create a .env configuration file in the project root:
+```
 
-Code snippet
+---
 
+## 2. Environment Variables
 
+Create a `.env` file in the project root:
+
+```env
 GROQ_API_KEY=your_groq_api_key_here
-3. Start the Backend Engine
-Bash
+```
 
+---
 
+## 3. Start the Backend
+
+Launch the FastAPI server:
+
+```bash
 python -m uvicorn backend.api:app --reload --port 8000
-Open frontend/index.html inside a web browser or serve it via your static file host of choice to explore the interface.
+```
 
-⚙️ Core Technical Stack
-API Framework: FastAPI + Uvicorn
+Then open `frontend/index.html` in your browser (or serve it using any static file server) to access the interface.
 
-Embeddings Model: sentence-transformers
+---
 
-Vector Vector Store: ChromaDB (EphemeralClient in-memory engine)
+# ⚙️ Core Technical Stack
 
-Keyword Matching: rank_bm25 (BM25Okapi implementation)
-
-Inference Engine: Groq (llama-3.3-70b-versatile for deep structural context parsing)
-
-Parser Engine: tree-sitter-languages for AST isolation
+| Component | Technology |
+|-----------|------------|
+| **API Framework** | FastAPI + Uvicorn |
+| **Embeddings Model** | sentence-transformers |
+| **Vector Store** | ChromaDB (EphemeralClient, in-memory) |
+| **Keyword Retrieval** | rank_bm25 (BM25Okapi) |
+| **Inference Engine** | Groq (`llama-3.3-70b-versatile`) |
+| **Parser Engine** | tree-sitter-languages (AST-based code parsing) |

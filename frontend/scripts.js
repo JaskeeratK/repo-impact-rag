@@ -1,6 +1,6 @@
 let indexBuilt = false;
 // const API_BASE = "https://verbose-space-engine-69rgg5j44r5rfxr7r-8000.app.github.dev";
-const API_BASE = "https://repoimpactanalyzer.vercel.app/"
+const API_BASE = "https://repo-impact-rag.onrender.com"
 
 function renderMarkdown(text) {
   return marked.parse(text);

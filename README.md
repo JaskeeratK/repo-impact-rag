@@ -177,5 +177,5 @@ Then open `frontend/index.html` in your browser (or serve it using any static fi
 | **Embeddings Model** | sentence-transformers |
 | **Vector Store** | ChromaDB (EphemeralClient, in-memory) |
 | **Keyword Retrieval** | rank_bm25 (BM25Okapi) |
-| **Inference Engine** | Groq (`llama-3.3-70b-versatile`) |
+| **Inference Engine** | Groq (`llama-3.1-8b-instant`) and (`openai/gpt-oss-20b`) |
 | **Parser Engine** | tree-sitter-languages (AST-based code parsing) |

@@ -32,12 +32,19 @@ class CommitRequest(BaseModel):
     repo_path: str
     question: str
 
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
+
+# @app.on_event("startup")
+# async def startup_event():
+#     # Pre-load embedding model so first request doesn't timeout
+#     app.state.model = SentenceTransformer("all-MiniLM-L6-v2")
+from fastembed import TextEmbedding
 
 @app.on_event("startup")
 async def startup_event():
     # Pre-load embedding model so first request doesn't timeout
-    app.state.model = SentenceTransformer("all-MiniLM-L6-v2")
+    app.state.model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+    
 # ---------- Build Index ----------
 @app.post("/build-index")
 def build_repo_index(data: RepoRequest):

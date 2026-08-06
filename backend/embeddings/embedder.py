@@ -18,11 +18,18 @@ from fastembed import TextEmbedding
 
 
 class Embedder:
+    _model = None  # shared across every Embedder() instance in this process
+
     def __init__(self):
-        self.model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        if Embedder._model is None:
+            Embedder._model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        self.model = Embedder._model
 
     def embed(self, texts):
         if isinstance(texts, str):
+            texts = [texts]
+        embeddings = list(self.model.embed(texts))
+        return [e.tolist() for e in embeddings]
             texts = [texts]
         embeddings = list(self.model.embed(texts))
         return [e.tolist() for e in embeddings]

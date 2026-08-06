@@ -5,7 +5,8 @@ python-dotenv
 pydantic
 
 # RAG & embeddings
-sentence-transformers
+# sentence-transformers
+fastembed
 chromadb
 groq
 

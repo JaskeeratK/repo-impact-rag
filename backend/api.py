@@ -40,10 +40,11 @@ class CommitRequest(BaseModel):
 #     app.state.model = SentenceTransformer("all-MiniLM-L6-v2")
 from fastembed import TextEmbedding
 
+from backend.embeddings.embedder import Embedder
+
 @app.on_event("startup")
 async def startup_event():
-    # Pre-load embedding model so first request doesn't timeout
-    app.state.model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+    Embedder()  # warms and caches the shared model once at boot
     
 # ---------- Build Index ----------
 @app.post("/build-index")

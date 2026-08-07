@@ -1,10 +1,27 @@
 # RIA
 
-<img width="1327" height="650" alt="ria5" src="https://github.com/user-attachments/assets/068cadea-256e-486b-a921-ccead3e6990f" />
-<img width="1336" height="640" alt="ria6" src="https://github.com/user-attachments/assets/c01ae45a-6707-456f-9f6a-a03ac431b717" />
 ## Repo Impact RAG 🔍🚀
 
 An advanced Retrieval-Augmented Generation (RAG) system engineered to map, trace, and evaluate the blast radius of code changes within a repository. By combining AST-aware code chunking, hybrid dense/sparse search, and static dependency graphs, this system answers natural-language questions about how changes to a function, module, or database schema ripple through an ecosystem.
+
+<img width="1327" height="650" alt="ria5" src="https://github.com/user-attachments/assets/068cadea-256e-486b-a921-ccead3e6990f" />
+<img width="1336" height="640" alt="ria6" src="https://github.com/user-attachments/assets/c01ae45a-6707-456f-9f6a-a03ac431b717" />
+
+---
+
+## 🚀 Live Demo
+
+- **Frontend:** [repoimpactanalyzer.vercel.app](https://repoimpactanalyzer.vercel.app)
+- **Backend:** hosted on Render (free tier)
+
+> ⏱️ **Note:** The backend spins down after inactivity. The first request after idle time can take up to ~50 seconds to wake up — this is expected, not a bug.
+
+**Try it:**
+1. Paste a small public repo URL (e.g. `https://github.com/pallets-eco/flask-mail`)
+2. Ask something like *"What breaks if I change the `Message` class signature?"*
+3. Get back a Markdown impact analysis + a live-rendered dependency graph
+
+Every session starts fresh — closing and reopening the tab clears all state, no history or old repo data persists.
 
 ---
 
@@ -34,7 +51,7 @@ An advanced Retrieval-Augmented Generation (RAG) system engineered to map, trace
             │                                  Reciprocal Rank Fusion (RRF)
             ▼                                                   │
    Embedder.embed()                                             ▼
-(sentence-transformers)                     DependencyGraph.get_dependents()
+       (fastembed)                          DependencyGraph.get_dependents()
             │                                                   │
             ▼                                                   ▼
      VectorStore.add()                              Generator.generate()
@@ -53,7 +70,7 @@ Instead of slicing source code blindly by character limits, `vectorstore/build_i
 ### 2. Dual-Engine Retrieval & Fusion
 Queries pass through a hybrid retrieval pipeline designed to trap both high-level semantic intent and precise syntax tokens.
 
-* **Dense Retrieval:** Handled via `sentence-transformers` matching against an in-memory Chroma instance. Captures conceptual matches (e.g., matching "token refresh" to `validate_session_timestamp`).
+* **Dense Retrieval:** Handled via `fastembed` (ONNX-based, `BAAI/bge-small-en-v1.5`) matching against an in-memory Chroma instance. Captures conceptual matches (e.g., matching "token refresh" to `validate_session_timestamp`).
 * **Sparse Retrieval:** Powered by `rank_bm25` (BM25Okapi), capturing exact variable names, function identifiers, or database parameters.
 * **Reciprocal Rank Fusion (RRF):** Merges dense and sparse lists score-agnostically based on ranking order, eliminating manual alpha tuning.
 
@@ -79,7 +96,7 @@ backend/
     build_index.py          File tree walking, language validation, and AST chunking
     store.py                Chroma EphemeralClient instance wrapper
   embeddings/
-    embedder.py              SentenceTransformer engine wrapper (fixed imports)
+    embedder.py              fastembed (ONNX) engine wrapper, singleton model instance
   rag/
     retriever.py             Dense + BM25 search engines and RRF rank merger
     generator.py              Groq LLM manager (Markdown analysis + structured JSON graph)
@@ -174,7 +191,7 @@ Then open `frontend/index.html` in your browser (or serve it using any static fi
 | Component | Technology |
 |-----------|------------|
 | **API Framework** | FastAPI + Uvicorn |
-| **Embeddings Model** | sentence-transformers |
+| **Embeddings Model** | fastembed (`BAAI/bge-small-en-v1.5`, ONNX runtime) |
 | **Vector Store** | ChromaDB (EphemeralClient, in-memory) |
 | **Keyword Retrieval** | rank_bm25 (BM25Okapi) |
 | **Inference Engine** | Groq (`llama-3.1-8b-instant`) and (`openai/gpt-oss-20b`) |

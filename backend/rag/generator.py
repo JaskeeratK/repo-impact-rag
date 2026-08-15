@@ -102,7 +102,7 @@ import json
 from groq import Groq
 
 PROSE_MODEL = "openai/gpt-oss-20b"
-GRAPH_MODEL = "llama-3.1-8b-instant"
+GRAPH_MODEL = "openai/gpt-oss-20b" # was "llama-3.1-8b-instant"
 
 def clean_chunk(text: str) -> str:
     """Strip Jupyter notebook JSON noise, keep only source content."""
@@ -191,7 +191,7 @@ Rules:
                 {"role": "user", "content": graph_prompt}
             ],
             temperature=0.1,
-            
+            response_format={"type": "json_object"},
         )
 
         graph_json = None
